@@ -102,7 +102,7 @@ static int EmitFancyRGB(const VP8Io* const io, WebPDecParams* const p) {
 
   if (y == 0) {
     // First line is special cased. We mirror the u/v samples at boundary.
-    upsample(NULL, cur_y, cur_u, cur_v, cur_u, cur_v, NULL, dst, mb_w);
+    upsample(cur_y, NULL, cur_u, cur_v, cur_u, cur_v, dst, NULL, mb_w);
   } else {
     // We can finish the left-over line from previous call.
     upsample(p->tmp_y, cur_y, top_u, top_v, cur_u, cur_v,
@@ -612,7 +612,7 @@ static int CustomPut(const VP8Io* io) {
     return 0;
   }
   num_lines_out = p->emit(io, p);
-  if (p->emit_alpha) {
+  if (p->emit_alpha != NULL) {
     p->emit_alpha(io, p);
   }
   p->last_y += num_lines_out;

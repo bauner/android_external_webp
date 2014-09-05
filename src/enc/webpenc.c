@@ -108,7 +108,7 @@ static void MapConfigToTools(VP8Encoder* const enc) {
   enc->do_search_ = (config->target_size > 0 || config->target_PSNR > 0);
   if (!config->low_memory) {
 #if !defined(DISABLE_TOKEN_BUFFER)
-    enc->use_tokens_ = (method >= 3) && !enc->do_search_;
+    enc->use_tokens_ = (enc->rd_opt_level_ >= RD_OPT_BASIC);  // need rd stats
 #endif
     if (enc->use_tokens_) {
       enc->num_parts_ = 1;   // doesn't work with multi-partition
@@ -145,20 +145,16 @@ static VP8Encoder* InitVP8Encoder(const WebPConfig* const config,
   const int preds_h = 4 * mb_h + 1;
   const size_t preds_size = preds_w * preds_h * sizeof(uint8_t);
   const int top_stride = mb_w * 16;
-  const size_t nz_size = (mb_w + 1) * sizeof(uint32_t);
-  const size_t cache_size = (3 * YUV_SIZE + PRED_SIZE) * sizeof(uint8_t);
+  const size_t nz_size = (mb_w + 1) * sizeof(uint32_t) + ALIGN_CST;
   const size_t info_size = mb_w * mb_h * sizeof(VP8MBInfo);
-  const size_t samples_size = (2 * top_stride +         // top-luma/u/v
-                               16 + 16 + 16 + 8 + 1 +   // left y/u/v
-                               2 * ALIGN_CST)           // align all
-                               * sizeof(uint8_t);
+  const size_t samples_size = 2 * top_stride * sizeof(uint8_t)  // top-luma/u/v
+                            + ALIGN_CST;                        // align all
   const size_t lf_stats_size =
       config->autofilter ? sizeof(LFStats) + ALIGN_CST : 0;
   VP8Encoder* enc;
   uint8_t* mem;
   const uint64_t size = (uint64_t)sizeof(VP8Encoder)   // main struct
                       + ALIGN_CST                      // cache alignment
-                      + cache_size                     // working caches
                       + info_size                      // modes info
                       + preds_size                     // prediction modes
                       + samples_size                   // top/left samples
@@ -169,16 +165,15 @@ static VP8Encoder* InitVP8Encoder(const WebPConfig* const config,
   printf("===================================\n");
   printf("Memory used:\n"
          "             encoder: %ld\n"
-         "         block cache: %ld\n"
          "                info: %ld\n"
          "               preds: %ld\n"
          "         top samples: %ld\n"
          "            non-zero: %ld\n"
          "            lf-stats: %ld\n"
          "               total: %ld\n",
-         sizeof(VP8Encoder) + ALIGN_CST, cache_size, info_size,
+         sizeof(VP8Encoder) + ALIGN_CST, info_size,
          preds_size, samples_size, nz_size, lf_stats_size, size);
-  printf("Transcient object sizes:\n"
+  printf("Transient object sizes:\n"
          "      VP8EncIterator: %ld\n"
          "        VP8ModeScore: %ld\n"
          "      VP8SegmentInfo: %ld\n"
@@ -203,19 +198,11 @@ static VP8Encoder* InitVP8Encoder(const WebPConfig* const config,
   enc->mb_w_ = mb_w;
   enc->mb_h_ = mb_h;
   enc->preds_w_ = preds_w;
-  enc->yuv_in_ = (uint8_t*)mem;
-  mem += YUV_SIZE;
-  enc->yuv_out_ = (uint8_t*)mem;
-  mem += YUV_SIZE;
-  enc->yuv_out2_ = (uint8_t*)mem;
-  mem += YUV_SIZE;
-  enc->yuv_p_ = (uint8_t*)mem;
-  mem += PRED_SIZE;
   enc->mb_info_ = (VP8MBInfo*)mem;
   mem += info_size;
   enc->preds_ = ((uint8_t*)mem) + 1 + enc->preds_w_;
   mem += preds_w * preds_h * sizeof(uint8_t);
-  enc->nz_ = 1 + (uint32_t*)mem;
+  enc->nz_ = 1 + (uint32_t*)DO_ALIGN(mem);
   mem += nz_size;
   enc->lf_stats_ = lf_stats_size ? (LFStats*)DO_ALIGN(mem) : NULL;
   mem += lf_stats_size;
@@ -225,13 +212,7 @@ static VP8Encoder* InitVP8Encoder(const WebPConfig* const config,
   enc->y_top_ = (uint8_t*)mem;
   enc->uv_top_ = enc->y_top_ + top_stride;
   mem += 2 * top_stride;
-  mem = (uint8_t*)DO_ALIGN(mem + 1);
-  enc->y_left_ = (uint8_t*)mem;
-  mem += 16 + 16;
-  enc->u_left_ = (uint8_t*)mem;
-  mem += 16;
-  enc->v_left_ = (uint8_t*)mem;
-  mem += 8;
+  assert(mem <= (uint8_t*)enc + size);
 
   enc->config_ = config;
   enc->profile_ = use_filter ? ((config->filter_type == 1) ? 0 : 1) : 2;
@@ -270,7 +251,7 @@ static int DeleteVP8Encoder(VP8Encoder* enc) {
 //------------------------------------------------------------------------------
 
 static double GetPSNR(uint64_t err, uint64_t size) {
-  return err ? 10. * log10(255. * 255. * size / err) : 99.;
+  return (err > 0 && size > 0) ? 10. * log10(255. * 255. * size / err) : 99.;
 }
 
 static void FinalizePSNR(const VP8Encoder* const enc) {
