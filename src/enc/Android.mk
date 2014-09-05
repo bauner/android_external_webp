@@ -25,21 +25,37 @@ LOCAL_SRC_FILES := \
         frame.c\
         histogram.c \
         iterator.c \
-        layer.c \
+        near_lossless.c \
         picture.c \
+        picture_csp.c \
+        picture_psnr.c \
+        picture_rescale.c \
+        picture_tools.c \
         quant.c \
         syntax.c \
         tree.c \
         token.c \
         vp8l.c \
         webpenc.c \
+        ../dsp/alpha_processing.c \
+        ../dsp/alpha_processing_mips_dsp_r2.c \
+        ../dsp/alpha_processing_sse2.c \
         ../dsp/cpu.c \
         ../dsp/cpu-features.c \
         ../dsp/enc.c \
+        ../dsp/enc_avx2.c \
+        ../dsp/enc_mips32.c \
         ../dsp/enc_neon.c \
         ../dsp/enc_sse2.c \
+        ../dsp/filters_mips_dsp_r2.c \
         ../dsp/lossless.c \
+        ../dsp/lossless_mips32.c \
+        ../dsp/lossless_neon.c \
+        ../dsp/lossless_sse2.c \
         ../dsp/yuv.c \
+        ../dsp/yuv_mips32.c \
+        ../dsp/yuv_mips_dsp_r2.c \
+        ../dsp/yuv_sse2.c \
         ../utils/bit_writer.c \
         ../utils/color_cache.c \
         ../utils/filters.c \
@@ -47,6 +63,7 @@ LOCAL_SRC_FILES := \
         ../utils/huffman_encode.c \
         ../utils/quant_levels.c \
         ../utils/rescaler.c \
+        ../utils/random.c \
         ../utils/thread.c \
         ../utils/utils.c
 
