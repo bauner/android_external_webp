@@ -15,10 +15,6 @@
 
 #include "./vp8enci.h"
 
-#if defined(__cplusplus) || defined(c_plusplus)
-extern "C" {
-#endif
-
 //------------------------------------------------------------------------------
 // VP8Iterator
 //------------------------------------------------------------------------------
@@ -242,7 +238,7 @@ void VP8IteratorBytesToNz(VP8EncIterator* const it) {
 #undef BIT
 
 //------------------------------------------------------------------------------
-// Advance to the next position, doing the bookeeping.
+// Advance to the next position, doing the bookkeeping.
 
 int VP8IteratorNext(VP8EncIterator* const it,
                     const uint8_t* const block_to_save) {
@@ -419,6 +415,3 @@ int VP8IteratorRotateI4(VP8EncIterator* const it,
 
 //------------------------------------------------------------------------------
 
-#if defined(__cplusplus) || defined(c_plusplus)
-}    // extern "C"
-#endif

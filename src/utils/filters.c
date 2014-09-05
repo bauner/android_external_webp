@@ -16,10 +16,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(__cplusplus) || defined(c_plusplus)
-extern "C" {
-#endif
-
 //------------------------------------------------------------------------------
 // Helpful macro.
 
@@ -186,7 +182,8 @@ WEBP_FILTER_TYPE EstimateBestFilter(const uint8_t* data,
     }
   }
   {
-    WEBP_FILTER_TYPE filter, best_filter = WEBP_FILTER_NONE;
+    int filter;
+    WEBP_FILTER_TYPE best_filter = WEBP_FILTER_NONE;
     int best_score = 0x7fffffff;
     for (filter = WEBP_FILTER_NONE; filter < WEBP_FILTER_LAST; ++filter) {
       int score = 0;
@@ -197,7 +194,7 @@ WEBP_FILTER_TYPE EstimateBestFilter(const uint8_t* data,
       }
       if (score < best_score) {
         best_score = score;
-        best_filter = filter;
+        best_filter = (WEBP_FILTER_TYPE)filter;
       }
     }
     return best_filter;
@@ -209,14 +206,14 @@ WEBP_FILTER_TYPE EstimateBestFilter(const uint8_t* data,
 
 //------------------------------------------------------------------------------
 
-const WebPFilterFunc WebPFilters[WEBP_FILTER_LAST] = {
+WebPFilterFunc WebPFilters[WEBP_FILTER_LAST] = {
   NULL,              // WEBP_FILTER_NONE
   HorizontalFilter,  // WEBP_FILTER_HORIZONTAL
   VerticalFilter,    // WEBP_FILTER_VERTICAL
   GradientFilter     // WEBP_FILTER_GRADIENT
 };
 
-const WebPUnfilterFunc WebPUnfilters[WEBP_FILTER_LAST] = {
+WebPUnfilterFunc WebPUnfilters[WEBP_FILTER_LAST] = {
   NULL,                // WEBP_FILTER_NONE
   HorizontalUnfilter,  // WEBP_FILTER_HORIZONTAL
   VerticalUnfilter,    // WEBP_FILTER_VERTICAL
@@ -225,6 +222,3 @@ const WebPUnfilterFunc WebPUnfilters[WEBP_FILTER_LAST] = {
 
 //------------------------------------------------------------------------------
 
-#if defined(__cplusplus) || defined(c_plusplus)
-}    // extern "C"
-#endif

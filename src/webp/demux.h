@@ -49,7 +49,7 @@
 
 #include "./mux_types.h"
 
-#if defined(__cplusplus) || defined(c_plusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -209,7 +209,7 @@ WEBP_EXTERN(void) WebPDemuxReleaseChunkIterator(WebPChunkIterator* iter);
 
 //------------------------------------------------------------------------------
 
-#if defined(__cplusplus) || defined(c_plusplus)
+#ifdef __cplusplus
 }    // extern "C"
 #endif
 
